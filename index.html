@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>성격 유형 테스트</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+      background: #121212; color: #fff;
+      display: flex; flex-direction: column;
+    }
+    header, footer {
+      background: #1f1f1f;
+      text-align: center;
+      padding: 1rem;
+    }
+    main {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-start;
+      padding: 2rem 1rem;
+    }
+    .question-box, .result-box {
+      background: #1a1a1a;
+      width: 90%; max-width: 800px;
+      padding: 2rem; margin-bottom: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .question-box label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+    .question-box .option {
+      display: block;
+      margin: .5rem 0;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .question-box .option input {
+      margin-right: .5rem;
+    }
+    .nav-buttons {
+      display: flex; gap: 1rem;
+      margin-bottom: 2rem;
+      width: 90%; max-width: 800px;
+      justify-content: center;
+    }
+    .nav-buttons button {
+      flex: 1;
+      background: #fff; color: #000;
+      border: none; border-radius: 8px;
+      padding: .6rem 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .share-buttons, .goods-section {
+      margin-top: 1rem;
+      text-align: center;
+    }
+    .share-buttons button, .goods-section button {
+      background: #444; color: #fff;
+      border: none; border-radius: 6px;
+      padding: .5rem 1rem;
+      margin: .5rem;
+      cursor: pointer;
+    }
+    .locked {
+      background: #2a2a2a;
+      padding: 1rem;
+      margin-top: 1rem;
+      border: 1px dashed #aaa;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>나만의 성격 캐릭터 찾기</h1>
+  </header>
+  <main>
+    <!-- 질문 영역 -->
+    <div id="quiz" class="question-box"></div>
+    <!-- 이전/다음 버튼 -->
+    <div id="nav-buttons" class="nav-buttons">
+      <button id="prev-btn">이전</button>
+      <button id="next-btn">다음</button>
+    </div>
+    <!-- 결과 영역 -->
+    <div id="result" class="result-box" style="display:none">
+      <div id="character" style="font-size:2rem; margin-bottom:1rem;">결과를 불러오는 중...</div>
+      <div id="description" style="font-size:1.1rem;"></div>
+      <div class="share-buttons">
+        <button onclick="downloadResult()">🔽 결과 이미지 저장</button>
+        <button onclick="shareAlert('카카오톡')">📤 카카오톡 공유</button>
+        <button onclick="shareAlert('인스타그램')">📤 인스타그램 공유</button>
+      </div>
+      <div class="goods-section">
+        <h3>🎁 굿즈 보기</h3>
+        <div class="locked">
+          🔒 프리미엄 유저만 굿즈를 볼 수 있어요!<br>
+          (배경화면, 쿠션, 그립톡, 핸드폰 케이스)
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    &copy; 2025 나만의 유형 테스트
+  </footer>
+
+  <script>
+    // 캐릭터별 점수 초기화
+    const characters = ['tiger','dog','cat','fox','penguin','rabbit','turtle','bear','parrot','lion','dragon','snake'];
+    const characterScores = {};
+    characters.forEach(c => characterScores[c] = 0);
+
+    // 질문 데이터
+    const questions = [
+      { q:'친구들과 있을 때 나는?', options:[
+        {text:'리더십 있게 이끈다', types:['tiger','lion']},
+        {text:'조용히 분위기를 지켜본다', types:['bear','snake','cat']},
+        {text:'분위기를 띄우는 역할을 한다', types:['parrot','dog','fox']}
+      ]},
+      { q:'혼자 있는 걸 좋아하나요?', options:[
+        {text:'매우 그렇다', types:['cat','turtle']},
+        {text:'보통이다', types:['penguin','snake']},
+        {text:'사람들과 함께하는 걸 좋아한다', types:['dog','parrot']}
+      ]},
+      { q:'위기 상황에서 나는?', options:[
+        {text:'차분하게 해결한다', types:['penguin','bear']},
+        {text:'주도적으로 나선다', types:['tiger','lion']},
+        {text:'관찰 후 따른다', types:['rabbit','turtle']}
+      ]},
+      { q:'감정을 표현하는 편인가요?', options:[
+        {text:'감정을 잘 드러낸다', types:['dog','parrot']},
+        {text:'필요할 때만 드러낸다', types:['penguin','fox']},
+        {text:'거의 표현하지 않는다', types:['snake','cat']}
+      ]},
+      { q:'새로운 환경에 적응하는 편인가요?', options:[
+        {text:'빠르게 적응한다', types:['dragon','lion']},
+        {text:'시간이 걸리지만 적응한다', types:['bear','rabbit']},
+        {text:'어려움을 겪는다', types:['turtle','cat']}
+      ]},
+      { q:'계획적으로 행동하는 편인가요?', options:[
+        {text:'항상 계획을 세운다', types:['snake','penguin']},
+        {text:'상황에 따라 유동적이다', types:['fox','rabbit']},
+        {text:'즉흥적으로 행동한다', types:['parrot','dog']}
+      ]},
+      { q:'혼자 하는 일을 선호하나요?', options:[
+        {text:'혼자 깊이 파고든다', types:['cat','snake']},
+        {text:'사람들과 협업한다', types:['dog','parrot']},
+        {text:'주도적으로 이끈다', types:['lion','tiger']}
+      ]},
+      { q:'여가시간에는 무엇을 하나요?', options:[
+        {text:'혼자만의 시간을 즐긴다', types:['turtle','cat']},
+        {text:'활동적으로 논다', types:['dragon','fox']},
+        {text:'친구들과 어울린다', types:['dog','parrot']}
+      ]},
+      { q:'문제 해결 방식은?', options:[
+        {text:'직접 부딪혀서 해결', types:['lion','tiger']},
+        {text:'정보를 수집해 해결', types:['snake','penguin']},
+        {text:'도움을 구한다', types:['rabbit','bear']}
+      ]},
+      { q:'나는 감성적인가요?', options:[
+        {text:'감성적이다', types:['rabbit','cat']},
+        {text:'중간이다', types:['dog','fox']},
+        {text:'이성적이다', types:['penguin','snake']}
+      ]},
+      { q:'갈등 상황에서는?', options:[
+        {text:'직접 해결한다', types:['lion','dragon']},
+        {text:'참거나 피한다', types:['turtle','bear']},
+        {text:'중재하려 한다', types:['dog','fox']}
+      ]},
+      { q:'팀플에서 나는?', options:[
+        {text:'팀 리더', types:['lion','tiger']},
+        {text:'기획·전략 담당', types:['snake','fox']},
+        {text:'서포트 역할', types:['dog','rabbit']}
+      ]}
+    ];
+
+    let currentIndex = 0;
+
+    const quizEl   = document.getElementById('quiz');
+    const prevBtn  = document.getElementById('prev-btn');
+    const nextBtn  = document.getElementById('next-btn');
+    const resultEl = document.getElementById('result');
+
+    // 질문 렌더링
+    function renderQuestion(i){
+      quizEl.innerHTML = '';
+      const q = questions[i];
+      const box = document.createElement('div');
+      box.className = 'question-box';
+
+      const lbl = document.createElement('label');
+      lbl.textContent = `질문 ${i+1}. ${q.q}`;
+      box.appendChild(lbl);
+
+      q.options.forEach((opt, idx)=>{
+        const optLbl = document.createElement('label');
+        optLbl.className = 'option';
+        const inp = document.createElement('input');
+        inp.type = 'radio';
+        inp.name = `q${i}`;
+        inp.value = idx;
+        optLbl.appendChild(inp);
+        optLbl.appendChild(document.createTextNode(opt.text));
+        box.appendChild(optLbl);
+      });
+
+      quizEl.appendChild(box);
+      prevBtn.style.display = i>0 ? 'inline-block' : 'none';
+      nextBtn.textContent = i<questions.length-1 ? '다음' : '결과 보기';
+    }
+
+    // 결과 출력
+    function showResult(){
+      // 점수 계산
+      questions.forEach((q,i)=>{
+        const sel = document.querySelector(`input[name="q${i}"]:checked`);
+        if(sel){
+          q.options[sel.value].types.forEach(t=> characterScores[t]++);
+        }
+      });
+
+      quizEl.style.display = 'none';
+      document.getElementById('nav-buttons').style.display = 'none';
+      resultEl.style.display = 'block';
+
+      // 최고 타입
+      let best=null, max=-1;
+      for(let t in characterScores){
+        if(characterScores[t]>max){
+          max=characterScores[t]; best=t;
+        }
+      }
+      const data = {
+        tiger:['🐯 호랑이형','리더십과 도전정신의 상징!'],
+        dog:['🐶 강아지형','따뜻하고 충직한 성격이에요.'],
+        cat:['🐱 고양이형','예민한 감성형입니다.'],
+        fox:['🦊 여우형','전략가, 눈치가 빨라요.'],
+        penguin:['🐧 펭귄형','이성적이고 침착해요.'],
+        rabbit:['🐰 토끼형','귀엽고 부드러운 성격이에요.'],
+        turtle:['🐢 거북이형','느긋하지만 끈기 있어요.'],
+        bear:['🐻 곰형','안정감을 주는 듬직한 타입.'],
+        parrot:['🐦 앵무새형','유쾌하고 말이 많아요.'],
+        lion:['🦁 사자형','책임감 강한 리더형.'],
+        dragon:['🐉 용형','창의적이고 독창적이에요.'],
+        snake:['🐍 뱀형','계산적이고 신중해요.']
+      };
+      document.getElementById('character').textContent = data[best][0];
+      document.getElementById('description').textContent = data[best][1];
+    }
+
+    // 공유 알림
+    function shareAlert(platform){
+      alert(`${platform} 공유 기능은 추후 업데이트될 예정입니다.`);
+    }
+
+    // 이미지 저장
+    function downloadResult(){
+      html2canvas(resultEl).then(canvas=>{
+        const link = document.createElement('a');
+        link.download = 'character-result.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
+    // 버튼 이벤트
+    nextBtn.addEventListener('click',()=>{
+      const sel = document.querySelector(`input[name="q${currentIndex}"]:checked`);
+      if(!sel) return alert('답변을 선택해주세요!');
+      if(currentIndex<questions.length-1){
+        currentIndex++;
+        renderQuestion(currentIndex);
+      } else {
+        showResult();
+      }
+    });
+    prevBtn.addEventListener('click',()=>{
+      if(currentIndex>0){
+        currentIndex--;
+        renderQuestion(currentIndex);
+      }
+    });
+
+    // 초기화
+    renderQuestion(0);
+  </script>
+</body>
+</html>
