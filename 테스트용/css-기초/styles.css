@@ -1,0 +1,56 @@
+/* 기본 타이포그래피 */
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  line-height: 1.5;
+  color: #222;
+}
+
+header h1 { margin: 0 0 6px 0; }
+nav { margin: 12px 0; }
+
+/* 링크와 색상 */
+a { color: #0366d6; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* 선택자 예제 */
+.highlight { background: #fff8e1; padding: 8px; border-left: 4px solid #ffd54f; }
+#unique { color: #b71c1c; font-weight: 700; }
+
+/* 박스 모델 */
+.box {
+  width: 200px;
+  padding: 16px;
+  border: 2px solid #333;
+  margin: 12px 0;
+  background: #f5f5f5;
+  box-sizing: border-box; /* padding을 포함한 크기 계산 */
+}
+
+/* Flexbox 레이아웃 */
+.cards { display: flex; gap: 12px; margin: 12px 0; }
+.card {
+  flex: 1;
+  padding: 20px;
+  background: #e3f2fd;
+  text-align: center;
+  border-radius: 6px;
+  border: 1px solid #90caf9;
+}
+
+/* 호버와 전환 */
+.btn {
+  background: #4caf50;
+  color: #fff;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.btn:hover { transform: translateY(-3px); background: #388e3c; }
+
+/* 반응형 예제 */
+@media (max-width: 600px) {
+  .cards { flex-direction: column; }
+}
